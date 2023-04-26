@@ -1,0 +1,4 @@
+FROM openjdk:8-jdk-alpine
+MAINTAINER maum0002
+COPY tfmserver.jar tfmserver.jar
+ENTRYPOINT ["java","-jar","/tfmserver.jar"]

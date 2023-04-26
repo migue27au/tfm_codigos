@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<meta name="description" content="" />
+<meta name="author" content="" />
+<title>Tables</title>
+
+	<!--  JQUERY -->
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css" />
+	<!-- BOOTSTRAP -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<link href="css/bootstrap4-toggle.min.css" rel="stylesheet">
+	<script src="js/bootstrap4-toggle.min.js"></script>
+	
+	<!-- MY STYLES -->
+	<link rel="stylesheet" type="text/css" href="css/styles.css" />
+	
+	<!-- FONT AWESOME -->
+	<link rel="stylesheet" type="text/css" href="css/font-awesome-all.min.css" />
+	<script type="text/javascript" src="js/font-awesome-all.min.js"></script>
+	
+	<!-- DATABLES -->
+	<link href="css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
+	<script src="js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+	<script src="js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+	
+	<!-- Plots -->
+	<script src="js/plotly-latest.min.js"></script>
+
+
+
+
+</head>
+<body>
+	<div class="loader-background"></div>
+	<div class="loader"></div>
+	<script src="js/loader.js"></script>
+
+	<nav
+		class="navbar navbar-expand-lg navbar-dark bg-dark mr-0 pr-0 ml-0 pl-0">
+		<div class="container-fluid d-flex justify-content-between">
+			<div>
+				<button class="btn btn-link btn-sm order-1 order-lg-0"
+					id="sidebarToggle">
+					<span class="navbar-brand">Antenicas</span> <i class="fas fa-bars"></i>
+				</button>
+			</div>
+			<!-- Navbar-->
+			<ul class="navbar-nav">
+				<li class="nav-item dropdown"><a
+					class="nav-link dropdown-toggle" id="userDropdown"
+					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fas fa-user fa-fw"></i>
+				</a>
+					<div class="dropdown-menu dropdown-menu-right"
+						aria-labelledby="userDropdown">
+						<a class="dropdown-item" sec:authentication="principal.username" href="account"></a>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="logout">Logout</a>
+					</div></li>
+				</ul>
+			</div>
+		</nav>
+
+
+	<div>
+		<!-- SIDENAV -->
+		<nav class="navbar navbar-dark" id="layoutSidenav_nav" style="left: 0px;">
+			<div id="navbar_text">
+				<div class="navbar-brand">Core</div>
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="nodes">
+							<i class="fas fa-tachometer-alt"></i> Nodes
+						</a>
+						<ul class="list-unstyled ml-4">
+							<li>
+								<a class="nav-link" href="editnodes">
+									<i class="fa fa-edit" aria-hidden="true"></i> Edit nodes
+								</a>	
+							</li>
+							<li>
+								<a class="nav-link" href="deletenodes">
+									<i class="fa fa-trash" aria-hidden="true"></i> Delete nodes
+								</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<div class="navbar-brand">Measures</div>
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="charts">
+							<i class="fas fa-chart-area"></i> Charts
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="tables">
+							<i class="fas fa-table"></i> Tables
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="exports">
+							<i class="fas fa-file-excel"></i> Export
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+		<!-- END SIDENAV -->
+
+		<main class="main-content">
+			<div class="container-fluid">
+				<h1 class="mt-4">Tables</h1>
+				<ol class="breadcrumb mb-4">
+					<li class="breadcrumb-item"><a href="nodes">nodes</a></li>
+					<li class="breadcrumb-item active">Tables</li>
+				</ol>
+				<div class="row">
+					<div class="col">
+						<div class="card mb-4">
+							<div class="card-header">
+								<h4>Available nodes</h4>
+							</div>
+							<div class="card-body">
+								<div class="btn-toolbar" role="toolbar">
+									<div th:each="node: ${nodes}" class="btn-group mr-2 mb-2"
+										role="group">
+										<a th:class="${node.function==1} ? 'btn btn-danger' : 'btn btn-primary'" th:attr="href='tables?id=' + ${node.id}">
+		
+											<span th:text="${node.alias}"></span>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div th:unless="${selectedNode==null}" class="col-4">
+						<div class="card mb-4">
+							<script th:inline="javascript" th:attr="nonce=${cspNonce}">
+								$(function() {
+								    $( "#datepicker_from, #datepicker_to" ).datepicker({
+								        changeMonth: true,
+								        dateFormat: 'dd/mm/yy',
+								        firstDay: 1,
+								        numberOfMonths: 1,
+								        maxDate: new Date(),
+								        onSelect: function( selectedDate ) {
+								            if(this.id == 'datepicker_from'){
+								              var dateMin = $('#datepicker_from').datepicker("getDate");
+								              var rMin = new Date(dateMin.getFullYear(), dateMin.getMonth(),dateMin.getDate());
+								              $('#datepicker_to').datepicker("option","minDate",rMin);
+								              var rMax = new Date(dateMin.getFullYear(), dateMin.getMonth(),dateMin.getDate()+6); // Min Date = Selected + 1d
+											  if(rMax.getDate() < new Date().getDate()){
+									              $('#datepicker_to').datepicker("option","maxDate",rMax);
+											  } else {
+												  $('#datepicker_to').datepicker("option","maxDate",new Date());
+											  }
+								            }
+								            updateRedirect();
+								        }
+								    });
+								    
+								});
+							</script>
+							<div class="card-body">
+								<div class="input-group date">
+									<div class="input-group-prepend" for="datepicker_from">
+										<span class="input-group-text" id="inputGroup-sizing-sm" style="font-family: monospace;"><i class="fas fa-calendar-alt"></i>&nbsp;From</span>
+									</div>
+									<input type='text' class="form-control" id="datepicker_from" />
+								</div>
+								<div class="input-group date">
+									<div class="input-group-prepend" for="datepicker_to">
+										<span class="input-group-text" id="inputGroup-sizing-sm" style="font-family: monospace;"><i class="fas fa-calendar-alt"></i>&nbsp;Till</span>
+									</div>
+									<input type='text' class="form-control" id="datepicker_to" />
+								</div>
+								<div class="row mt-2">
+									<div class="col-9" style="font-size: 0.8rem;">
+									</div>
+									<div class="col-3">
+										<div class="d-flex justify-content-center align-middle">
+											<a href="" class="btn btn-info" id="search_element">Search</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card mb-4" th:unless="${selectedNode==null}">
+					<div class="card-header">
+						<i class="fas fa-table mr-1"></i>
+						Data recolected from: <span th:text="${selectedNode.alias}"></span>
+					</div>
+					<div class="card-body" style="font-size: 0.8rem;">
+						<div class="table table-sm table-responsive">
+							<table class="table table-bordered" id="dataTable" width="100%"	cellspacing="0" hidden>
+								<thead>
+									<tr>
+										<th>Id</th>
+										<th>Time</th>
+										<th>Current Battery</th>
+										<th>Current Load</th>
+										<th>Current Photovoltaic</th>
+										<th>Voltage Battery</th>
+										<th>Votage Photovoltaic</th>
+										<th>Voltage Photovoltaic</th>
+										<th>Temperature Battery</th>
+										<th>Temperature Photovoltaic</th>
+										<th th:if="${selectedNode.function == 1}">Irradiance</th>
+										<th th:if="${selectedNode.function == 1}">Temperature</th>
+										<th th:if="${selectedNode.function == 1}">Pressure</th>
+										<th th:if="${selectedNode.function == 1}">Humidity</th>
+										<th th:if="${selectedNode.function == 1}">Rainfall</th>
+										<th th:if="${selectedNode.function == 1}">Wind</th>
+										<th th:if="${selectedNode.function == 1}">Output</th>
+									</tr>
+								</thead>
+								<tfoot>
+									<tr>
+										<th>Id</th>
+										<th>Time</th>
+										<th>Current Battery</th>
+										<th>Current Load</th>
+										<th>Current Photovoltaic</th>
+										<th>Voltage Battery</th>
+										<th>Votage Photovoltaic</th>
+										<th>Voltage Photovoltaic</th>
+										<th>Temperature Battery</th>
+										<th>Temperature Photovoltaic</th>
+										<th th:if="${selectedNode.function == 1}">Irradiance</th>
+										<th th:if="${selectedNode.function == 1}">Temperature</th>
+										<th th:if="${selectedNode.function == 1}">Pressure</th>
+										<th th:if="${selectedNode.function == 1}">Humidity</th>
+										<th th:if="${selectedNode.function == 1}">Rainfall</th>
+										<th th:if="${selectedNode.function == 1}">Wind</th>
+										<th th:if="${selectedNode.function == 1}">Output</th>
+									</tr>
+								</tfoot>
+								<tbody>
+									<tr th:each="data: ${dataInfos}">
+										<td th:text="${data.id}"></td>
+										<td th:text="${data.timeSample}"></td>
+										<td th:text="${data.currentBattery}"></td>
+										<td th:text="${data.currentLoad}"></td>
+										<td th:text="${data.currentPhotovoltaic}"></td>
+										<td th:text="${data.voltageBattery}"></td>
+										<td th:text="${data.voltageLoad}"></td>
+										<td th:text="${data.voltagePhotovoltaic}"></td>
+										<td th:text="${data.temperatureBattery}"></td>
+										<td th:text="${data.temperaturePhotovoltaic}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.Irradiance}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.temperature}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.pressure}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.humidity}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.rainfall}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.wind}"></td>
+										<td th:if="${selectedNode.function == 1}" th:text="${data.output}"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+	
+	<script th:unless="${selectedNode==null}" th:inline="javascript" th:attr="nonce=${cspNonce}">
+		
+		document.getElementById("dataTable").hidden = false;
+		$('#dataTable').DataTable({
+			"pageLength": 100
+		});
+	
+		function updateRedirect(input = ""){
+			var nodeId = /*[[${selectedNode.id}]]*/ 0;
+			
+			var a = document.getElementById("search_element");
+						
+			var datepicker_from = document.getElementById("datepicker_from").value.replace(/\//g, "-");
+			var datepicker_to = document.getElementById("datepicker_to").value.replace(/\//g, "-");
+			
+			a.href = "/tables?id="+nodeId+"&from="+datepicker_from+"&to="+datepicker_to;
+		}
+		
+		if(location.search.includes("from=") && location.search.includes("to=")){
+			var from_str = location.search.split("from=")[1].split("&")[0];
+			var to_str = location.search.split("to=")[1].split("&")[0];
+			const regex = new RegExp('^[0-9]{2}-[0-9]{2}-[0-9]{4}$');
+			if(regex.test(from_str) === true && regex.test(to_str) === true){					
+				document.getElementById("datepicker_from").value = from_str.replace(/-/g, "/");
+				document.getElementById("datepicker_to").value = to_str.replace(/-/g, "/");
+			} else {
+				alert("Ten cuidao");
+			}
+		} else {
+			var today = new Date();
+			var today_str = today.getDate()+"/"+(today.getMonth()+1)+"/"+today.getFullYear();
+			if(today_str.split("/")[0].length < 2){
+				today_str = "0"+today_str;
+			}
+			if(today_str.split("/")[1].length < 2){
+				today_str = today_str.split("/")[0]+"/0"+today_str.split("/")[1]+"/"+today_str.split("/")[2];
+			}
+			document.getElementById("datepicker_to").value = today_str;
+			document.getElementById("datepicker_from").value = today_str;
+		}
+		
+		updateRedirect();
+	</script>
+	
+	<script src="js/script.js"></script>
+
+</body>
+</html>

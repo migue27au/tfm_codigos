@@ -1,0 +1,1 @@
+mvn sonar:sonar -Dsonar.projectKey=tfmserver -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqp_282892e107e72c6af3a2cb4e554fc3161d99c318

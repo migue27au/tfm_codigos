@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<meta name="description" content="" />
+<meta name="author" content="" />
+<title>Edit Node</title>
+
+	<!--  JQUERY -->
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css" />
+	<!-- BOOTSTRAP -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<link href="css/bootstrap4-toggle.min.css" rel="stylesheet">
+	<script src="js/bootstrap4-toggle.min.js"></script>
+	
+	<!-- MY STYLES -->
+	<link rel="stylesheet" type="text/css" href="css/styles.css" />
+	
+	<!-- FONT AWESOME -->
+	<link rel="stylesheet" type="text/css" href="css/font-awesome-all.min.css" />
+	<script type="text/javascript" src="js/font-awesome-all.min.js"></script>
+	
+	<!-- DATABLES -->
+	<link href="css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
+	<script src="js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+	<script src="js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+	
+	<!-- Plots -->
+	<script src="js/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+	<div class="loader-background"></div>
+	<div class="loader"></div>
+	<script src="js/loader.js"></script>
+	<nav
+		class="navbar navbar-expand-lg navbar-dark bg-dark mr-0 pr-0 ml-0 pl-0">
+		<div class="container-fluid d-flex justify-content-between">
+			<div>
+				<button class="btn btn-link btn-sm order-1 order-lg-0"
+					id="sidebarToggle">
+					<span class="navbar-brand">Antenicas</span> <i class="fas fa-bars"></i>
+				</button>
+			</div>
+			<!-- Navbar-->
+			<ul class="navbar-nav">
+				<li class="nav-item dropdown"><a
+					class="nav-link dropdown-toggle" id="userDropdown"
+					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fas fa-user fa-fw"></i>
+				</a>
+					<div class="dropdown-menu dropdown-menu-right"
+						aria-labelledby="userDropdown">
+						<a class="dropdown-item" sec:authentication="principal.username" href="account"></a>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="logout">Logout</a>
+					</div></li>
+			</ul>
+		</div>
+	</nav>
+
+
+	<div>
+		<!-- SIDENAV -->
+		<nav class="navbar navbar-dark" id="layoutSidenav_nav" style="left: 0px;">
+			<div id="navbar_text">
+				<div class="navbar-brand">Core</div>
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="nodes">
+							<i class="fas fa-tachometer-alt"></i> Nodes
+						</a>
+						<ul class="list-unstyled ml-4">
+							<li>
+								<a class="nav-link" href="editnodes">
+									<i class="fa fa-edit" aria-hidden="true"></i> Edit nodes
+								</a>	
+							</li>
+							<li>
+								<a class="nav-link" href="deletenodes">
+									<i class="fa fa-trash" aria-hidden="true"></i> Delete nodes
+								</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<div class="navbar-brand">Measures</div>
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="charts">
+							<i class="fas fa-chart-area"></i> Charts
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="tables">
+							<i class="fas fa-table"></i> Tables
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="exports">
+							<i class="fas fa-file-excel"></i> Export
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+		<!-- END SIDENAV -->
+
+		<main class="main-content">
+			<div class="container-fluid">
+				<h1 class="mt-4">Edit Nodes</h1>
+				<ol class="breadcrumb mb-4">
+					<li class="breadcrumb-item"><a href="nodes">nodes</a></li>
+					<li class="breadcrumb-item active">Edit nodes</li>
+				</ol>
+				<div class="card mb-4">
+					<div class="card-header">
+						<h4>Available nodes</h4>
+					</div>
+					<div class="card-body">
+						<div class="btn-toolbar" role="toolbar">
+							<div th:each="node: ${nodes}" class="btn-group mr-2 mb-2"
+								role="group">
+								<a
+									th:class="${node.function==1} ? 'btn btn-danger' : 'btn btn-primary'"
+									th:attr="href='editnodes?id=' + ${node.id}"> <span
+									th:text="${node.alias}"></span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card mb-4" th:unless="${selectedNode==null}">
+					<div class="card-header">
+						<i class="fas fa-table mr-1"></i> Editing node: <span
+							th:text="${selectedNode.alias}"></span>
+					</div>
+					<div class="card-body">
+						<div
+							th:class="${selectedNode.function==1} ? 'card bg-danger text-white mb-4' : 'card bg-primary text-white mb-4'">
+							<div class="card-body">
+								<div class="row">
+									<div class="col text-center">
+										<p>
+										<h5 th:text="${selectedNode.alias}"></h5>
+										</p>
+									</div>
+									<div class="col">
+										<p>
+										<h6>
+											<span th:if=${selectedNode.function==0}>Not Defined</span> <span
+												th:if=${selectedNode.function==1}>Master</span> <span
+												th:if=${selectedNode.function==2}>Router</span> <span
+												th:if=${selectedNode.function==3}>Slave</span>
+										</h6>
+										</p>
+										<p>
+											<span th:text="${selectedNode.addressMsb}"></span> <span
+												th:text="${selectedNode.addressLsb}"></span>
+										</p>
+									</div>
+								</div>
+								<div
+									class="card-footer d-flex align-items-center justify-content-between">
+									<div class="container-fluid">
+										<form th:action="@{/editnode(nodeId=${selectedNode.id})}"
+											th:object="${editNodeDTO}" method="POST">
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">Id</span>
+												</div>
+												<input type="text" class="form-control" aria-label="Small"
+													aria-describedby="inputGroup-sizing-sm"
+													th:value="${selectedNode.id}" disabled>
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">Owner</span>
+												</div>
+												<input type="text" class="form-control" aria-label="Small"
+													aria-describedby="inputGroup-sizing-sm"
+													th:value="${selectedNode.owner.username}" disabled>
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">Alias</span>
+												</div>
+												<input th:type="text" class="form-control validation_input" aria-label="Small"
+													aria-describedby="inputGroup-sizing-sm" required th:field="*{alias}" pattern="[a-zA-Z0-9_ -()]{1,30}" title="Expected length up to 30, and using only whitelisted chars: a-z, A-Z, 0-9 ,_ , , (, ), ñ or Ñ ">
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">SampleRate</span>
+												</div>
+												<input type="number" min="20" class="form-control validation_input"
+													aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+													th:field="*{sampleRate}">
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">Longitude</span>
+												</div>
+												<input type="number" step="0.0000001" class="form-control validation_input"
+													aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+													th:field="*{longitude}">
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">Latitude</span>
+												</div>
+												<input type="number" step="0.0000001" class="form-control validation_input"
+													aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+													th:field="*{latitude}">
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">TimeZone</span>
+													<span class="input-group-text" id="inputGroup-sizing-sm">GMT</span>
+												</div>
+												<div class="input-group-prepend">
+													<input type="number" min="-11" max="12"
+														class="form-control validation_input" aria-label="Small"
+														aria-describedby="inputGroup-sizing-sm"
+														th:field="*{timeZoneFirst}"> <span
+														class="input-group-text" id="inputGroup-sizing-sm">:</span>
+													<input type="number" min="0" max="45" step="15"
+														class="form-control validation_input" aria-label="Small"
+														aria-describedby="inputGroup-sizing-sm"
+														th:field="*{timeZoneSecond}">
+												</div>
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<div class="input-group-prepend">
+													<span class="input-group-text" id="inputGroup-sizing-sm">Description</span>
+												</div>
+												<textarea type="text" class="form-control validation_input"
+													aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+													th:field="*{description}"></textarea>
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<input th:if="${selectedNode.output}" checked
+													type="checkbox" data-toggle="toggle" data-width="150"
+													data-onstyle="info" data-offstyle="secondary"
+													data-on="Ouptut on" data-off="Ouptut off"
+													th:field="*{output}"> <input
+													th:unless="${selectedNode.output}" type="checkbox"
+													data-toggle="toggle" data-width="150" data-onstyle="info"
+													data-offstyle="secondary" data-on="Ouptut on"
+													data-off="Ouptut off" th:field="*{output}">
+											</div>
+											<div class="input-group input-group-sm mb-3">
+												<input type="submit" class="btn btn-dark" value="Edit node" />
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+	<script src="js/script.js"></script>
+
+</body>
+</html>

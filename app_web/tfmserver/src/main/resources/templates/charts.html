@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<meta name="description" content="" />
+<meta name="author" content="" />
+<title>Charts</title>
+
+	<!--  JQUERY -->
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.min.css" />
+	<!-- BOOTSTRAP -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<link href="css/bootstrap4-toggle.min.css" rel="stylesheet">
+	<script src="js/bootstrap4-toggle.min.js"></script>
+	
+	<!-- MY STYLES -->
+	<link rel="stylesheet" type="text/css" href="css/styles.css" />
+	
+	<!-- FONT AWESOME -->
+	<link rel="stylesheet" type="text/css" href="css/font-awesome-all.min.css" />
+	<script type="text/javascript" src="js/font-awesome-all.min.js"></script>
+	
+	<!-- DATABLES -->
+	<link href="css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
+	<script src="js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+	<script src="js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+	
+	<!-- Plots -->
+	<script src="js/plotly-latest.min.js"></script>
+
+
+</head>
+<body>
+	<div class="loader-background"></div>
+	<div class="loader"></div>
+	<script src="js/loader.js"></script>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark mr-0 pr-0 ml-0 pl-0">
+		<div class="container-fluid d-flex justify-content-between">
+			<div>
+				<button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle">
+				<span class="navbar-brand">Antenicas</span>
+					<i class="fas fa-bars"></i>
+				</button>
+			</div>
+			<!-- Navbar-->
+			<ul class="navbar-nav">
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<i class="fas fa-user fa-fw"></i>
+					</a>
+					<div class="dropdown-menu dropdown-menu-right"
+						aria-labelledby="userDropdown">
+						<a class="dropdown-item" sec:authentication="principal.username" href="account"></a>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="logout">Logout</a>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</nav>
+
+
+	<div>
+		<!-- SIDENAV -->
+		<nav class="navbar navbar-dark" id="layoutSidenav_nav" style="left: 0px;">
+			<div id="navbar_text">
+				<div class="navbar-brand">Core</div>
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="nodes">
+							<i class="fas fa-tachometer-alt"></i> Nodes
+						</a>
+						<ul class="list-unstyled ml-4">
+							<li>
+								<a class="nav-link" href="editnodes">
+									<i class="fa fa-edit" aria-hidden="true"></i> Edit nodes
+								</a>	
+							</li>
+							<li>
+								<a class="nav-link" href="deletenodes">
+									<i class="fa fa-trash" aria-hidden="true"></i> Delete nodes
+								</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<div class="navbar-brand">Measures</div>
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="charts">
+							<i class="fas fa-chart-area"></i> Charts
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="tables">
+							<i class="fas fa-table"></i> Tables
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="exports">
+							<i class="fas fa-file-excel"></i> Export
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+		<!-- END SIDENAV -->
+
+		<main class="main-content">
+			<div class="container-fluid">
+				<h1 class="mt-4">Charts</h1>
+				<ol class="breadcrumb mb-4">
+					<li class="breadcrumb-item"><a href="nodes">nodes</a></li>
+					<li class="breadcrumb-item active">Charts</li>
+				</ol>
+				<div class="row">
+					<div class="col">
+						<div class="card mb-4">
+							<div class="card-header">
+								<h4>Available nodes</h4>
+							</div>
+							<div class="card-body">
+								<div class="btn-toolbar" role="toolbar">
+									<div th:each="node: ${nodes}" class="btn-group mr-2 mb-2"
+										role="group">
+										<a th:class="${node.function==1} ? 'btn btn-danger' : 'btn btn-primary'" th:attr="href='charts?id=' + ${node.id} + '&values=1'">
+											<span th:text="${node.alias}"></span>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div th:unless="${selectedNode==null}" class="col-4">
+						<div class="card mb-4">
+							<script th:inline="javascript" th:attr="nonce=${cspNonce}">
+								$(function() {
+								    $( "#datepicker_from, #datepicker_to" ).datepicker({
+								        changeMonth: true,
+								        dateFormat: 'dd/mm/yy',
+								        firstDay: 1,
+								        numberOfMonths: 1,
+								        maxDate: new Date(),
+								        onSelect: function( selectedDate ) {
+								            if(this.id == 'datepicker_from'){
+								              var dateMin = $('#datepicker_from').datepicker("getDate");
+								              var rMin = new Date(dateMin.getFullYear(), dateMin.getMonth(),dateMin.getDate());
+								              $('#datepicker_to').datepicker("option","minDate",rMin);
+								              var rMax = new Date(dateMin.getFullYear(), dateMin.getMonth(),dateMin.getDate()+6); // Min Date = Selected + 1d
+											  if(rMax.getDate() < new Date().getDate()){
+									              $('#datepicker_to').datepicker("option","maxDate",rMax);
+											  } else {
+												  $('#datepicker_to').datepicker("option","maxDate",new Date());
+											  }
+								            }
+								            updateRedirect();
+								        }
+								    });
+								    
+								});
+							</script>
+							<div class="card-body">
+								<div class="input-group date">
+									<div class="input-group-prepend" for="datepicker_from">
+										<span class="input-group-text" id="inputGroup-sizing-sm" style="font-family: monospace;"><i class="fas fa-calendar-alt"></i>&nbsp;From</span>
+									</div>
+									<input type='text' class="form-control" id="datepicker_from" />
+								</div>
+								<div class="input-group date">
+									<div class="input-group-prepend" for="datepicker_to">
+										<span class="input-group-text" id="inputGroup-sizing-sm" style="font-family: monospace;"><i class="fas fa-calendar-alt"></i>&nbsp;Till</span>
+									</div>
+									<input type='text' class="form-control" id="datepicker_to" />
+								</div>
+								<div class="row mt-2">
+									<div class="col-9" style="font-size: 0.8rem;">
+										<div class="row">
+											<div class="col">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption1" name="cbOption1" value="current">
+													<label class="form-check-label" for="cbOption1">Current</label>
+												</div>
+											</div>
+											<div class="col">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption2" name="cbOption2" value="voltage">
+													<label class="form-check-label" for="cbOption2">Voltage</label>
+												</div>
+											</div>
+											<div class="col">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption3" name="cbOption3" value="temperature">
+														<label class="form-check-label" for="cbOption3">Temperature</label>
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col" th:if="${selectedNode.function==1}">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption4" name="cbOption4" value="humidity">
+													<label class="form-check-label" for="cbOption4">Humidity</label>
+												</div>
+											</div>
+											<div class="col" th:if="${selectedNode.function==3}" hidden>
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption4" name="cbOption4" value="humidity">
+													<label class="form-check-label" for="cbOption4">Humidity</label>
+												</div>
+											</div>
+											
+											<div class="col" th:if="${selectedNode.function==1}">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption5" name="cbOption5" value="irradiance">
+													<label class="form-check-label" for="cbOption5">Irradiance</label>
+												</div>
+											</div>
+											<div class="col" th:if="${selectedNode.function==3}" hidden>
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption5" name="cbOption5" value="irradiance">
+													<label class="form-check-label" for="cbOption5">Irradiance</label>
+												</div>
+											</div>
+											
+											<div class="col" th:if="${selectedNode.function==1}">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption6" name="cbOption6" value="pressure">
+													<label class="form-check-label" for="cbOption6">Pressure</label>
+												</div>
+											</div>
+											<div class="col" th:if="${selectedNode.function==3}" hidden>
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption6" name="cbOption6" value="pressure">
+													<label class="form-check-label" for="cbOption6">Pressure</label>
+												</div>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col" th:if="${selectedNode.function==1}">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption7" name="cbOption7" value="wind">
+														<label class="form-check-label" for="cbOption7">Wind</label>
+												</div>
+											</div>
+											<div class="col" th:if="${selectedNode.function==3}" hidden>
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption7" name="cbOption7" value="wind">
+														<label class="form-check-label" for="cbOption7">Wind</label>
+												</div>
+											</div>
+											
+											<div class="col" th:if="${selectedNode.function==1}">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption8" name="cbOption8" value="rain">
+														<label class="form-check-label" for="cbOption8">Rain</label>
+												</div>
+											</div>
+											<div class="col" th:if="${selectedNode.function==3}" hidden>
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption8" name="cbOption8" value="rain">
+														<label class="form-check-label" for="cbOption8">Rain</label>
+												</div>
+											</div>
+											
+											<div class="col">
+												<div class="form-check form-check-inline">
+													<input class="form-check-input" type="checkbox" id="cbOption9" name="cbOption9" value="output">
+														<label class="form-check-label" for="cbOption9">Output</label>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="col-3">
+										<div class="d-flex justify-content-center align-middle">
+											<a href="" class="btn btn-info" id="search_element">Search</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div th:unless="${selectedNode==null}" class="card mb-4">
+					<div class="card-header">
+						<i class="fas fa-table mr-1"></i> Data recolected from: <span
+							th:text="${selectedNode.alias}"></span>
+					</div>
+					<div class="card-body">
+						<!-- GRAPHS -->
+						<div id="graphsAllDiv">
+							<div id="plotyChartAll"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+
+
+	<!-- <script src="js/jquery-ui-timepicker-addon.js"></script>
+		<link href="css/jquery-ui-timepicker-addon.css" rel="stylesheet" />
+		 -->
+
+
+	<script th:unless="${selectedNode==null}" th:inline="javascript" th:attr="nonce=${cspNonce}">
+		
+		$('#cbOption1').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption2').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption3').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption4').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption5').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption6').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption7').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption8').change(function() {
+			updateRedirect();
+		});
+		$('#cbOption9').change(function() {
+			updateRedirect();
+		});
+	
+		function updateRedirect(input = ""){
+			var nodeId = /*[[${selectedNode.id}]]*/ 0;
+			
+			var a = document.getElementById("search_element");
+			
+			var searchValues = 0;
+							
+			if(document.getElementById("cbOption1").checked){
+				searchValues += 1;
+			}
+			if(document.getElementById("cbOption2").checked){
+				searchValues += 2;
+			}
+			if(document.getElementById("cbOption3").checked){
+				searchValues += 4;
+			}
+			if(document.getElementById("cbOption4").checked){
+				searchValues += 8;
+			}
+			if(document.getElementById("cbOption5").checked){
+				searchValues += 16;
+			}
+			if(document.getElementById("cbOption6").checked){
+				searchValues += 32;
+			}
+			if(document.getElementById("cbOption7").checked){
+				searchValues += 64;
+			}
+			if(document.getElementById("cbOption8").checked){
+				searchValues += 128;
+			}
+			if(document.getElementById("cbOption9").checked){
+				searchValues += 256;
+			}
+			
+			var datepicker_from = document.getElementById("datepicker_from").value.replace(/\//g, "-");
+			var datepicker_to = document.getElementById("datepicker_to").value.replace(/\//g, "-");
+			
+			a.href = "/charts?id="+nodeId+"&values="+searchValues+"&from="+datepicker_from+"&to="+datepicker_to;
+		}
+		
+		if(location.search.includes("values=") && location.search.split("values=")[1].split("&")[0] != null && isNaN(parseInt(location.search.split("values=")[1].split("&")[0])) === false){
+			var searchValues = parseInt(location.search.split("values=")[1].split("&")[0]);
+			var binary = (searchValues >>> 0).toString(2) 
+			if(binary[binary.length-1] === "1"){
+				document.getElementById("cbOption1").checked = true
+			}
+			if(binary[binary.length-2] === "1"){
+				document.getElementById("cbOption2").checked = true
+			}
+			if(binary[binary.length-3] === "1"){
+				document.getElementById("cbOption3").checked = true
+			}
+			if(binary[binary.length-4] === "1"){
+				document.getElementById("cbOption4").checked = true
+			}
+			if(binary[binary.length-5] === "1"){
+				document.getElementById("cbOption5").checked = true
+			}
+			if(binary[binary.length-6] === "1"){
+				document.getElementById("cbOption6").checked = true
+			}
+			if(binary[binary.length-7] === "1"){
+				document.getElementById("cbOption7").checked = true
+			}
+			if(binary[binary.length-8] === "1"){
+				document.getElementById("cbOption8").checked = true
+			}
+			if(binary[binary.length-9] === "1"){
+				document.getElementById("cbOption9").checked = true
+			}
+		}
+		if(location.search.includes("from=") && location.search.includes("to=")){
+			var from_str = location.search.split("from=")[1].split("&")[0];
+			var to_str = location.search.split("to=")[1].split("&")[0];
+			const regex = new RegExp('^[0-9]{2}-[0-9]{2}-[0-9]{4}$');
+			if(regex.test(from_str) === true && regex.test(to_str) === true){					
+				document.getElementById("datepicker_from").value = from_str.replace(/-/g, "/");
+				document.getElementById("datepicker_to").value = to_str.replace(/-/g, "/");
+			} else {
+				alert("Ten cuidao");
+			}
+		} else {
+			var today = new Date();
+			var today_str = today.getDate()+"/"+(today.getMonth()+1)+"/"+today.getFullYear();
+			if(today_str.split("/")[0].length < 2){
+				today_str = "0"+today_str;
+			}
+			if(today_str.split("/")[1].length < 2){
+				today_str = today_str.split("/")[0]+"/0"+today_str.split("/")[1]+"/"+today_str.split("/")[2];
+			}
+			document.getElementById("datepicker_to").value = today_str;
+			document.getElementById("datepicker_from").value = today_str;
+		}
+		
+		updateRedirect();
+	</script>
+
+	<script th:unless="${dataInfos==null}" th:inline="javascript" th:attr="nonce=${cspNonce}">
+		    var dataInfos = /*[[${dataInfos}]]*/ [];
+			var dataInfosLength = /*[[${#arrays.length(dataInfos)}]]*/ 0;
+			var nodeFunction = /*[[${selectedNode.function}]]*/ 0;
+			
+			var timeArray = new Array();
+			
+			var currentLoad = new Array();
+			var currentBattery = new Array();
+			var currentPhotovoltaic = new Array();
+			var voltageLoad = new Array();
+			var voltageBattery = new Array();
+			var voltagePhotovoltaic = new Array();
+			var temperatureBattery = new Array();
+			var temperaturePhotovoltaic = new Array();
+			
+			var irradiance = new Array();
+			var temperature = new Array();
+			var humidity = new Array();
+			var rainfall = new Array();
+			var wind = new Array();
+			var pressure = new Array();
+			
+			var output = new Array();
+			
+			for(var i = 0; i < dataInfosLength; i++){
+				timeArray[i] = dataInfos[i].timeSample;
+				output[i] = dataInfos[i].output;
+
+				if(document.getElementById("cbOption1").checked){
+					currentLoad[i] = dataInfos[i].currentLoad;
+					currentBattery[i] = dataInfos[i].currentBattery;
+					currentPhotovoltaic[i] = dataInfos[i].currentPhotovoltaic;
+				}
+				if(document.getElementById("cbOption2").checked){
+					voltageLoad[i] = dataInfos[i].voltageLoad;
+					voltagePhotovoltaic[i] = dataInfos[i].voltagePhotovoltaic;
+					voltageBattery[i] = dataInfos[i].voltageBattery;
+				}
+				if(document.getElementById("cbOption3").checked){
+					temperatureBattery[i] = dataInfos[i].temperatureBattery;
+					temperaturePhotovoltaic[i] = dataInfos[i].temperaturePhotovoltaic;
+					temperature[i] = dataInfos[i].temperature;
+				}
+				if(document.getElementById("cbOption4").checked){
+					humidity[i] = dataInfos[i].humidity;
+				}
+				if(document.getElementById("cbOption5").checked){
+					irradiance[i] = dataInfos[i].irradiance;
+				}
+				if(document.getElementById("cbOption6").checked){
+					pressure[i] = dataInfos[i].pressure;
+				}
+				if(document.getElementById("cbOption7").checked){
+					wind[i] = dataInfos[i].wind;
+				}
+				if(document.getElementById("cbOption8").checked){
+					rainfall[i] = dataInfos[i].rainfall;
+				}
+				if(document.getElementById("cbOption9").checked){
+					output[i] = dataInfos[i].output;
+				}
+			}
+			
+			var il = {
+		      name:"currentLoad (mA)",
+		      y: currentLoad,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var ib = {
+		      name:"currentBattery (mA)",
+		      y: currentBattery,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var ip = {
+		      name:"currentPhotovoltaic (mA)",
+		      y: currentPhotovoltaic,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var vp = {
+		      name:"voltagePhotovoltaic (V)",
+		      y: voltagePhotovoltaic,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var vb = {
+		      name:"voltageBattery (V)",
+		      y: voltageBattery,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var vl = {
+		      name:"voltageLoad (V)",
+		      y: voltageLoad,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var irra = {
+		      name:"irradiance (W/m2)",
+		      y: irradiance,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var rain = {
+		      name:"rain (L/m2))",
+		      y: rainfall,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var wind = {
+		      name:"wind (m/s)",
+		      y: wind,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var tem = {
+		      name:"temperature (ºC)",
+		      y: temperature,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var hum = {
+		      name:"humidity (%)",
+		      y: humidity,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var pres = {
+		      name:"pressure (hPa)",
+		      y: pressure,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var btem = {
+		      name:"temperatureBattery (ºC)",
+		      y: temperatureBattery,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var ptem = {
+		      name:"temperaturePhotovoltaic (ºC)",
+		      y: temperaturePhotovoltaic,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    var out = {
+		      name:"output (boolean)",
+		      y: output,
+		      x: timeArray,
+		      type: 'scatter'
+		    };
+		    
+		    var data = [];
+		    
+	    	if(document.getElementById("cbOption1").checked){
+	    		data.push(il, ib, ip);
+			}
+			if(document.getElementById("cbOption2").checked){
+				data.push(vl, vb, vp);
+			}
+			if(document.getElementById("cbOption3").checked){
+				data.push(btem, ptem);
+				if(nodeFunction == 1){
+					data.push(tem);
+				}
+			}
+			if(document.getElementById("cbOption4").checked){
+				data.push(hum);
+			}
+			if(document.getElementById("cbOption5").checked){
+				data.push(irra);
+			}
+			if(document.getElementById("cbOption6").checked){
+				data.push(pres);
+			}
+			if(document.getElementById("cbOption7").checked){
+				data.push(wind);
+			}
+			if(document.getElementById("cbOption8").checked){
+				data.push(rain);
+			}
+			if(document.getElementById("cbOption9").checked){
+				data.push(out);
+			}
+		    		    
+		    var layout = {
+		        title: "",
+		        showlegend: true,
+		        autosize: true,
+		        //width: 1000,
+		        xaxis: {
+		          showticklabels: true,
+		          automargin: true,
+		          tickangle: 'auto',
+		          autorange: true,
+		          rangeselector: {buttons: [
+		              {
+		                count: 1,
+		                label: '1h',
+		                step: 'hour',
+		                stepmode: 'backward'
+		              },
+		              {
+		                count: 24,
+		                label: '1d',
+		                step: 'hour',
+		                stepmode: 'backward'
+		              },
+		              {step: 'all'}
+		            ]},
+		          rangeslider: {range: [timeArray[0], timeArray[timeArray.length-1]]},
+		          type: 'date',
+		          fixedrange: true
+		        },
+		        yaxis:{
+		          showticklabels: true,
+		          automargin: true,
+		          tickangle: 'auto',
+		          autotick: true,
+		          autorange: true,
+		          fixedrange: false
+		        }
+		    };
+		    var config = {
+	    		connectgaps: false,
+	    		responsive: true,
+	    		scrollZoom: true,
+	    		modeBarButtonsToRemove: ['toImage'],
+	    		editable: false
+    		}
+		    
+		    var div = document.getElementById("graphsAllDiv");
+		    var plotyChart = document.createElement("div");
+		    plotyChart.setAttribute("id", "plotyChart");
+		    div.appendChild(plotyChart);
+		    
+		    Plotly.newPlot('plotyChartAll', data, layout, config);
+		    document.getElementById("graphsAllDiv").style.visibility = "visible";
+		</script>
+	<script src="js/script.js"></script>
+
+	</body>
+</html>

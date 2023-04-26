@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:latest
+    container_name: db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: tfmserverdb
+    volumes:
+      - C:/docker-files/tfmdb:/var/lib/mysql
+    ports:
+      - '3306:3306'
+
+  php-my-admin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    depends_on:
+      - db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      PMA_HOST: db
+      PMA_USER: password      #use the root user to login on startup
+      PMA_PASSWORD: password  #use the root user to login on startup
+    ports:
+      - "8081:80"
+
+  tfmserver:
+    image: tfmserver:latest
+    container_name: tfm
+    depends_on:
+      - db
+    restart: unless-stopped
+    environment:
+      spring.datasource.url: "jdbc:mysql://db:3306/tfmserverdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
+    ports:
+      - '8443:8443'
+volumes:
+  db_data: {}
+
+
