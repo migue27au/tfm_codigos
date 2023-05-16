@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: tfmserverdb
     volumes:
-      - C:/docker-files/tfmdb:/var/lib/mysql
+      - /home/pi/tfmdb:/var/lib/mysql
     ports:
       - '3306:3306'
 
